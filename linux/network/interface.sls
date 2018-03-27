@@ -203,6 +203,7 @@ linux_interface_{{ interface_name }}:
   - bridge: {{ interface_name }}
   - delay: 0
   - bypassfirewall: True
+  {% if interface.use_interfaces is defined %}
   - use:
     {%- for network in interface.use_interfaces %}
     - network: linux_interface_{{ network }}
@@ -215,6 +216,9 @@ linux_interface_{{ interface_name }}:
     {%- for network in interface.get('use_ovs_ports', []) %}
     - cmd: ovs_port_up_{{ network }}
     {%- endfor %}
+  {% else %}
+  - ports: none
+  {%- endif %}
   {%- endif %}
   {%- if interface.type == 'bond' %}
   - slaves: {{ interface.slaves }}
