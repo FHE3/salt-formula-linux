@@ -181,6 +181,9 @@ linux_interface_{{ interface_name }}:
   {%- if interface.metric is defined %}
   - metric: {{ interface.metric }}
   {%- endif %}
+  {%- if interface.gatewawy is defined and not system.get('use_system_gateway') %}
+  - gateway: {{ interface.gateway }}
+  {%- endif %}
   {%- if interface.wireless is defined and grains.os_family == 'Debian' %}
   {%- if interface.wireless.security == "wpa" %}
   - wpa-ssid: {{ interface.wireless.essid }}
@@ -271,7 +274,7 @@ remove_interface_{{ network }}_line2:
 
 {%- endfor %}
 
-{%- if interface.gateway is defined %}
+{%- if interface.gateway is defined and system.get('use_system_gateway') %}
 
 linux_system_network:
   network.system:
