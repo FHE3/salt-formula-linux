@@ -35,6 +35,8 @@ linux_sysfs_write_{{ name }}_{{ key }}:
     - name: sysfs.write
     - key: {{ key }}
     - value: {{ value }}
+    - onchanges:
+      - file: /etc/sysfs.d/{{ name }}.conf
       {%- endif %}
     {%- endif %}
   {%- endfor %}
