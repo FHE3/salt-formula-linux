@@ -26,7 +26,9 @@ linux_system_environment_proxies:
   file.blockreplace:
   - name: /etc/environment
   - marker_start: '# SALT MANAGED VARIABLES - DO NOT EDIT - START'
-  - content:      '# '
+  - content: |
+      #
+
   - marker_end:   '# SALT MANAGED VARIABLES - END'
   - append_if_not_found: True
   - backup: '.bak'
