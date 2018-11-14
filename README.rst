@@ -323,6 +323,7 @@ identifier same as command resulting in not being able to change it):
             command: '/cmd/to/run'
             identifier: cmd1
             enabled: true
+            commented: false
             user: 'root'
             hour: 2
             minute: 0
