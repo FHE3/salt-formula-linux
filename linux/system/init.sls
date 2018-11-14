@@ -3,6 +3,12 @@
 include:
 - linux.system.env
 - linux.system.profile
+- linux.system.shell
+{%- if system.login_defs is defined %}
+- linux.system.login_defs
+{%- endif %}
+- linux.system.at
+- linux.system.cron
 {%- if system.repo|length > 0 %}
 - linux.system.repo
 {%- endif %}
@@ -32,6 +38,9 @@ include:
 {%- endif %}
 {%- if system.sysfs is defined %}
 - linux.system.sysfs
+{%- endif %}
+{%- if system.cgroup is defined %}
+- linux.system.cgroup
 {%- endif %}
 {%- if system.locale|length > 0 %}
 - linux.system.locale
@@ -99,9 +108,21 @@ include:
 {%- if system.directory is defined %}
 - linux.system.directory
 {%- endif %}
+{%- if system.file is defined %}
+- linux.system.file
+{%- endif %}
 {%- if system.ld is defined %}
 - linux.system.ld
 {%- endif %}
 {%- if system.apt is defined and grains.os_family == 'Debian' %}
 - linux.system.apt
+{%- endif %}
+{%- if system.auth is defined %}
+- linux.system.auth
+{%- endif %}
+{%- if system.banner is defined %}
+- linux.system.banner
+{%- endif %}
+{%- if system.mcelog is defined %}
+- linux.system.mcelog
 {%- endif %}

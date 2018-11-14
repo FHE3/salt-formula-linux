@@ -11,7 +11,9 @@ linux_sysfs_package:
     - require:
       - pkg: linux_sysfs_package
 
-{%- for name, sysfs in system.get('sysfs', {}).iteritems() %}
+{% set apply = system.get('sysfs', {}).pop('enable_apply', True) %}
+
+{%- for name, sysfs in system.get('sysfs', {}).items() %}
 
 /etc/sysfs.d/{{ name }}.conf:
   file.managed:
@@ -26,11 +28,21 @@ linux_sysfs_package:
     - require:
       - file: /etc/sysfs.d
 
-  {%- for key, value in sysfs.iteritems() %}
+{%- if sysfs is mapping %}
+{%- set sysfs_list = [sysfs] %}
+{%- else %}
+{%- set sysfs_list = sysfs %}
+{%- endif %}
+
+{%- if apply %}
+
+{%- for item in sysfs_list %}
+{%- set list_idx = loop.index %}
+{%- for key, value in item.items() %}
     {%- if key not in ["mode", "owner"] %}
       {%- if grains.get('virtual_subtype', None) not in ['Docker', 'LXC'] %}
       {#- Sysfs cannot be set in docker, LXC, etc. #}
-linux_sysfs_write_{{ name }}_{{ key }}:
+linux_sysfs_write_{{ list_idx }}_{{ name }}_{{ key }}:
   module.run:
     - name: sysfs.write
     - key: {{ key }}
@@ -40,5 +52,9 @@ linux_sysfs_write_{{ name }}_{{ key }}:
       {%- endif %}
     {%- endif %}
   {%- endfor %}
+
+{%- endfor %}
+
+{%- endif %}
 
 {%- endfor %}

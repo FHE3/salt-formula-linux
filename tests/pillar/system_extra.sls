@@ -1,6 +1,28 @@
 
 linux:
+  network:
+    enabled: true
+    hostname: linux
+    fqdn: linux.ci.local
   system:
+    auth:
+      enabled: true
+      mkhomedir:
+        enabled: true
+        umask: 0027
+      ldap:
+        enabled: true
+        binddn: cn=bind,ou=service_users,dc=example,dc=com
+        bindpw: secret
+        uri: ldap://127.0.0.1
+        base: ou=users,dc=example,dc=com
+        ldap_version: 3
+        pagesize: 65536
+        referrals: off
+        filter:
+          passwd: (&(&(objectClass=person)(uidNumber=*))(unixHomeDirectory=*))
+          shadow: (&(&(objectClass=person)(uidNumber=*))(unixHomeDirectory=*))
+          group:  (&(objectClass=group)(gidNumber=*))
     enabled: true
     cluster: default
     name: linux

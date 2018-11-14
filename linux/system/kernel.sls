@@ -3,39 +3,24 @@
 
 {%- if system.kernel is defined %}
 
-{%- if system.kernel.isolcpu is defined or system.kernel.elevator is defined %}
+{%- set kernel_boot_opts = [] %}
+{%- do kernel_boot_opts.append('isolcpus=' ~ system.kernel.isolcpu) if system.kernel.isolcpu is defined %}
+{%- do kernel_boot_opts.append('elevator=' ~ system.kernel.elevator) if system.kernel.elevator is defined %}
+{%- do kernel_boot_opts.extend(system.kernel.boot_options) if system.kernel.boot_options is defined %}
 
 include:
   - linux.system.grub
 
-{%- if system.kernel.isolcpu is defined %}
-
-/etc/default/grub.d/90-isolcpu.cfg:
+{%- if kernel_boot_opts %}
+/etc/default/grub.d/99-custom-settings.cfg:
   file.managed:
-    - contents: 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT isolcpus={{ system.kernel.isolcpu }}"'
-    - require:
-      - file: grub_d_directory
-{%- if grains.get('virtual_subtype', None) not in ['Docker', 'LXC'] %} 
-    - watch_in:
-      - cmd: grub_update
-
-{%- endif %}
-{%- endif %}
-
-{%- if system.kernel.elevator is defined %}
-
-/etc/default/grub.d/91-elevator.cfg:
-  file.managed:
-    - contents: 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT elevator={{ system.kernel.elevator }}"'
+    - contents: 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT {{ kernel_boot_opts|join(' ') }}"'
     - require:
       - file: grub_d_directory
 {%- if grains.get('virtual_subtype', None) not in ['Docker', 'LXC'] %}
     - watch_in:
       - cmd: grub_update
-
 {%- endif %}
-{%- endif %}
-
 {%- endif %}
 
 {%- if system.kernel.version is defined %}
@@ -55,7 +40,7 @@ linux_kernel_package:
 # Not very Salt-ish.. :-(
 linux_kernel_old_absent:
   cmd.wait:
-  - name: "apt-get purge -y $(dpkg -l '*linux-image-[0-9]*' '*linux-headers-[0-9]*' '*linux-image-extra-[0-9]*' | grep -E '^ii' | awk '{print $2}' | grep -v '{{ system.kernel.version }}')"
+  - name: "dpkg -l '*linux-generic-*[0-9]*' '*linux-image-*[0-9]*' '*linux-headers-*[0-9]*' '*linux-image-extra-*[0-9]*' | grep -E '^ii' | awk '{print $2}' | grep -v '{{ system.kernel.version }}' | xargs dpkg --purge --force-depends"
   - watch:
     - pkg: linux_kernel_package
 
@@ -71,7 +56,16 @@ linux_kernel_module_{{ module }}:
 
 {%- endfor %}
 
-{%- for module_name, module_content in system.kernel.get('module', {}).iteritems() %}
+{%- if system.kernel.module is defined %}
+
+modprobe_d_directory:
+  file.directory:
+    - name: /etc/modprobe.d
+    - user: root
+    - group: root
+    - mode: 755
+
+  {%- for module_name in system.kernel.module %}
 
 /etc/modprobe.d/{{ module_name }}.conf:
   file.managed:
@@ -81,12 +75,14 @@ linux_kernel_module_{{ module }}:
     - template: jinja
     - source: salt://linux/files/modprobe.conf.jinja
     - defaults:
-       module_content: {{ module_content }}
        module_name: {{ module_name }}
+    - require:
+      - file: modprobe_d_directory
 
-{%- endfor %}
+  {%- endfor %}
+{%- endif %}
 
-{%- for sysctl_name, sysctl_value in system.kernel.get('sysctl', {}).iteritems() %}
+{%- for sysctl_name, sysctl_value in system.kernel.get('sysctl', {}).items() %}
 
 linux_kernel_{{ sysctl_name }}:
   sysctl.present:
