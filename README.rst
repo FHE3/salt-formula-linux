@@ -706,6 +706,17 @@ Configure kernel boot options:
             - spectre_v2=off
             - nopti
 
+Alternative way to set kernel boot options:
+
+.. code-block:: yaml
+
+    linux:
+      system:
+        kernel:
+          transparent_hugepage: always
+          elevator: deadline
+          isolcpu: 1,2,3,4
+
 CPU
 ~~~
 
