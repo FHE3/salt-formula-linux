@@ -1672,6 +1672,32 @@ Linux network systemd settings:
               network:
                 DHCP: yes
 
+Configure iproute2 rt-tables:
+
+Create ``/etc/iproute2/rt_tables.d/rt-tables.conf`` with contents
+$id $tablename
+id is mandatory.
+Remove ``/etc/iproute2/rt_tables.d/rt-tables.conf`` if rt-tables:enabled is not true
+
+.. code-block:: yaml
+
+    linux:
+      network:
+        ...
+        iproute2:
+          rt-tables:
+            enabled: true
+            tables:
+              mgt:
+                enabled: true
+                id: 100
+              inside:
+                enabled: true
+                id: 101
+              outside:
+                enabled: true
+                id: 102
+
 Configure global environment variables
 
 Use ``/etc/environment`` for static system wide variable assignment
